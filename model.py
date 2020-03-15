@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
+from datetime import date
 
 """
 S:  Stock of susceptible
@@ -51,19 +52,30 @@ def solve(t, recovery_time, R0, N, I_0, R_0):
     SIR = odeint(dSIR, SIR_0, t, args=(params,))
     return SIR
 
-def run_model(R0, recovery_time, N, I_0, R_0, t_end):
-    t = np.arange(0., t_end, 1)
-    SIR = solve(t, recovery_time, R0, N, I_0, R_0)
+def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
+    t_fwd = np.arange(0., t_max, 1)
+    SIR_fwd = solve(t_fwd, recovery_time, R0, N, I_0, R_0)
+
+    t_rev = np.arange(0., t_min, -1)
+    SIR_rev = solve(t_rev, recovery_time, R0, N, I_0, R_0)
+
+    t = np.concatenate((t_rev[::-1], t_fwd))
+    SIR = np.concatenate((np.flip(SIR_rev, axis=0), SIR_fwd), axis=0)
     return (t, SIR[:,0], SIR[:,1], SIR[:,2])
 
-def plot(ax, t, S, I, R, y_max):
-    ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[0, t[-1]])
+def plot(ax, t, S, I, R, t0_date, f, y_max):
+    ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[t[0], t[-1]])
     ax.plot(t, S, 'b--', label='Susceptible')
     ax.plot(t, I, 'r-', linewidth=2.0, label='Infected')
+    ax.plot(t, I * f, 'r-.', label='Detected')
     ax.plot(t, R, 'g--', label='Recovered')
-    ax.legend(loc=1)
     ax.grid(True)
 
+    real_date = date(2020, 3, 1)
+    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15]) + (real_date - t0_date).days
+    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992])
+    ax.plot(t_real, Ic_real, 'k*', label='Confirmed')
+    ax.legend(loc=1)
 
 if __name__ == "__main__":
     # Model Parameters
@@ -79,16 +91,25 @@ if __name__ == "__main__":
 
     # 13th March, Sweden, 775 detected infections
     # https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/
-    tested_positive = 775
-    detection_rate = 0.1 # Just guessing here
-    I_0 = tested_positive / detection_rate
-    R_0 = 100 # Just guessing.
+    I_0 = 7750
+    R_0 = 0 # Just guessing.
 
     # Number of days to run the simulation
-    t_end = 300
+    t_min= -20
+    t_max = 100
+
+    t0_date = date(2020, 3, 15)
+    f = 0.1
 
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
-    t, S, I, R = run_model(2.5, 17.5, N, I_0, R_0, t_end)
-    plot(ax, t, S, I, R, 3E6)
+    t, S, I, R = run_model(5.0, 17.5, N, I_0, R_0, t_min, t_max)
+
+    y_max = 10E6
+
+    plot(ax, t, S, I, R, t0_date, f, y_max)
+
+
+
+
     plt.show()
