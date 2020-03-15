@@ -22,30 +22,74 @@ def params():
 def root():
     N, I_0, R_0, R0, t_max, D, y_max = params()
     return render_template_string('''
-<html>
+<!doctype html>
+<html lang="en">
     <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>SIR model for COVID-19</title>
     </head>
     <body>
-        <h1>SIR model for COVID-19</h1>
-        <form action="/">
-            <label for="N">N:</label><br>
-            <input type="text" id="N" name="N" value="{{N}}"><br><br>
-            <label for="I_0">I_0:</label><br>
-            <input type="text" id="I_0" name="I_0" value="{{I_0}}"><br><br>
-            <label for="R_0">R_0:</label><br>
-            <input type="text" id="R_0" name="R_0" value="{{R_0}}"><br><br>
-            <label for="R0">R0:</label><br>
-            <input type="text" id="R0" name="R0" value="{{R0}}"><br><br>
-            <label for="t_max">t_max:</label><br>
-            <input type="text" id="t_max" name="t_max" value="{{t_max}}"><br><br>
-            <label for="D">D:</label><br>
-            <input type="text" id="D" name="D" value="{{D}}"><br><br>
-            <label for="y_max">y_max:</label><br>
-            <input type="text" id="y_max" name="y_max" value="{{y_max}}"><br><br>
-            <input type="submit" value="Submit">
+    <div class="container">
+        <h1 class="text-center">SIR model for COVID-19</h1>
+        <br>
+        <form action="/" class="text-right">
+            <div class="row">
+            <div class="col-md-3 col-md-offset-1">
+              <label>N:</label>
+              <input type="text" id="N" name="N" value="{{N}}"></br>
+              <small class="form-text text-muted">Population size</small>
+            </div>
+            <div class="col-md-3">
+              <label for="I_0">I_0:</label>
+              <input type="text" id="I_0" name="I_0" value="{{I_0}}"><br>
+              <small class="form-text text-muted">Individuals initially infected</small>
+            </div>
+            <div class="col-md-3">
+              <label for="t_max">t_max:</label>
+              <input type="text" id="t_max" name="t_max" value="{{t_max}}"><br>
+              <small class="form-text text-muted">Max days to run model</small>
+            </div>
+            </div>
+
+            <div class="row">
+            <div class="col-md-3 col-md-offset-1">
+              <label for="D">D:</label>
+              <input type="text" id="D" name="D" value="{{D}}"><br>
+              <small class="form-text text-muted">Days to recover</small>
+            </div>
+            <div class="col-md-3">
+              <label for="R_0">R_0:</label>
+              <input type="text" id="R_0" name="R_0" value="{{R_0}}"><br>
+              <small class="form-text text-muted">Individuals initially recovered</small>
+            </div>
+            <div class="col-md-3">
+              <label for="y_max">y_max:</label>
+              <input type="text" id="y_max" name="y_max" value="{{y_max}}"><br>
+              <small class="form-text text-muted">y scale max in graph</small>
+            </div>
+            </div>
+
+            <div class="row">
+            <div class="col-md-3 col-md-offset-1">
+              <label for="R0">R0:</label>
+              <input type="text" id="R0" name="R0" value="{{R0}}"><br>
+              <small class="form-text text-muted">Nr infected from a single person</small>
+            </div>
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-primary">Compute</button>
+            </div>
+            </div>
         </form>
+        <div class="row">
+        <div class="col-md-12 text-center">
         <img src="graph/{{img_name}}.png?N={{N}}&I_0={{I_0}}&R_0={{R_0}}&R0={{R0}}&t_max={{t_max}}&D={{D}}&y_max={{y_max}}" />
+        </div>
+        </div>
+    </div>
     </body>
 </html>
     ''', N=N, I_0=I_0, R_0=R_0, R0=R0, t_max=t_max, D=D, y_max=y_max, img_name=random.randint(0, 1E9))
