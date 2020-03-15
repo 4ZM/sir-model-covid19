@@ -40,7 +40,9 @@ def root():
     </head>
     <body>
     <div class="container">
-        <h1 class="text-center">SIR model for COVID-19</h1>
+        <a href="/">
+            <h1 class="text-center">SIR model for COVID-19</h1>
+        </a>
         <br>
         <form action="/" class="text-right">
             <div class="row">
