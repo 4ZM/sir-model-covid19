@@ -63,6 +63,13 @@ def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
     SIR = np.concatenate((np.flip(SIR_rev, axis=0), SIR_fwd), axis=0)
     return (t, SIR[:,0], SIR[:,1], SIR[:,2])
 
+
+def real_data():
+    real_date = date(2020, 3, 1)
+    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16]) - 1
+    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059])
+    return (real_date, t_real, Ic_real)
+
 def plot(ax, t, S, I, R, t0_date, f, y_max):
     ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[t[0], t[-1]])
     ax.plot(t, S, 'b--', label='Susceptible')
@@ -71,10 +78,9 @@ def plot(ax, t, S, I, R, t0_date, f, y_max):
     ax.plot(t, R, 'g--', label='Recovered')
     ax.grid(True)
 
-    real_date = date(2020, 3, 1)
-    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15]) + (real_date - t0_date).days
-    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992])
-    ax.plot(t_real, Ic_real, 'k*', label='Confirmed')
+    real_date, t_real, Ic_real = real_data()
+    t_real_adjusted = t_real + (real_date - t0_date).days
+    ax.plot(t_real_adjusted, Ic_real, 'k*', label='Confirmed')
     ax.legend(loc=1)
 
 if __name__ == "__main__":

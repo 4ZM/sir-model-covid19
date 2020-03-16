@@ -2,10 +2,10 @@ from flask import Flask, Response, request, render_template_string
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-from model import run_model, plot
+from model import run_model, plot, real_data
 import io
 import random
-from datetime import date
+from datetime import date, timedelta
 from dateutil import parser
 
 app = Flask(__name__)
@@ -14,8 +14,10 @@ def parse_date(string):
     return parser.parse(string).date()
 
 def params():
+    real_date, t_real, Ic_real = real_data()
+
     N = request.args.get('N', default = int(10E6), type = int)
-    I_0 = request.args.get('I_0', default = int(992 / 0.1), type = int)
+    I_0 = request.args.get('I_0', default = int(Ic_real[-1] / 0.1), type = int)
     R_0 = request.args.get('R_0', default = 100, type = int)
     R0 = request.args.get('R0', default = 2.5, type = float)
     t_min = request.args.get('t_min', default = -20, type = int)
@@ -23,7 +25,9 @@ def params():
     D = request.args.get('D', default = 17.5, type = float)
     f = request.args.get('f', default = 0.1, type = float)
     y_max = request.args.get('y_max', default = int(3E6), type = int)
-    t0_date = request.args.get('t0_date', default = date.today(), type = parse_date)
+    t0_date = request.args.get('t0_date',
+                               default = real_date + timedelta(days=int(t_real[-1])),
+                               type = parse_date)
     return (N, I_0, R_0, R0, t0_date, t_min, t_max, D, f, y_max)
 
 @app.route('/')
