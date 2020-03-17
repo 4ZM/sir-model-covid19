@@ -66,8 +66,8 @@ def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
 
 def real_data():
     real_date = date(2020, 3, 1)
-    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16]) - 1
-    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059])
+    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17]) - 1
+    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167])
     return (real_date, t_real, Ic_real)
 
 def plot(ax, t, S, I, R, t0_date, f, y_max):
