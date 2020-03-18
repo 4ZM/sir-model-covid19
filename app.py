@@ -18,11 +18,11 @@ def params():
 
     N = request.args.get('N', default = int(10E6), type = int)
     I_0 = request.args.get('I_0', default = int(Ic_real[-1] / 0.1), type = int)
-    R_0 = request.args.get('R_0', default = 100, type = int)
+    R_0 = request.args.get('R_0', default = 0, type = int)
     R0 = request.args.get('R0', default = 2.5, type = float)
     t_min = request.args.get('t_min', default = -20, type = int)
     t_max = request.args.get('t_max', default = 200, type = int)
-    D = request.args.get('D', default = 17.5, type = float)
+    D = request.args.get('D', default = 10, type = float)
     f = request.args.get('f', default = 0.1, type = float)
     y_max = request.args.get('y_max', default = int(3E6), type = int)
     t0_date = request.args.get('t0_date',
