@@ -17,22 +17,21 @@ def params():
     real_date, t_real, Ic_real = real_data()
 
     N = request.args.get('N', default = int(10E6), type = int)
-    I_0 = request.args.get('I_0', default = int(Ic_real[-1] / 0.1), type = int)
+    I_0 = request.args.get('I_0', default = 10*Ic_real[-1], type = int)
     R_0 = request.args.get('R_0', default = 0, type = int)
-    R0 = request.args.get('R0', default = 2.5, type = float)
+    R0 = request.args.get('R0', default = 2.0, type = float)
     t_min = request.args.get('t_min', default = -20, type = int)
-    t_max = request.args.get('t_max', default = 200, type = int)
-    D = request.args.get('D', default = 10, type = float)
-    f = request.args.get('f', default = 0.1, type = float)
-    y_max = request.args.get('y_max', default = int(3E6), type = int)
+    t_max = request.args.get('t_max', default = 150, type = int)
+    D = request.args.get('D', default = 8, type = float)
+    y_max = request.args.get('y_max', default = int(2E6), type = int)
     t0_date = request.args.get('t0_date',
                                default = real_date + timedelta(days=int(t_real[-1])),
                                type = parse_date)
-    return (N, I_0, R_0, R0, t0_date, t_min, t_max, D, f, y_max)
+    return (N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max)
 
 @app.route('/')
 def root():
-    N, I_0, R_0, R0, t0_date, t_min, t_max, D, f, y_max = params()
+    N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max = params()
     return render_template_string('''
 <!doctype html>
 <html lang="en">
@@ -76,7 +75,7 @@ def root():
             <div class="col-md-3">
               <label for="D">D:</label>
               <input type="text" id="D" name="D" value="{{D}}"><br>
-              <small class="form-text text-muted">Days to recover</small>
+              <small class="form-text text-muted">Days to recover (inc. incubation)</small>
             </div>
             <div class="col-md-3">
               <label for="R_0">R_0:</label>
@@ -86,7 +85,7 @@ def root():
             <div class="col-md-3">
               <label for="t_max">t_max:</label>
               <input type="text" id="t_max" name="t_max" value="{{t_max}}"><br>
-              <small class="form-text text-muted">Max days to run model to</small>
+              <small class="form-text text-muted">Days after t0 top stop</small>
             </div>
             <div class="col-md-3">
             </div>
@@ -99,9 +98,6 @@ def root():
               <small class="form-text text-muted">Nr infected from a single person</small>
             </div>
             <div class="col-md-3">
-              <label for="f">f:</label>
-              <input type="text" id="f" name="f" value="{{f}}"><br>
-              <small class="form-text text-muted">Fraction infected also detected</small>
             </div>
             <div class="col-md-3">
               <label for="t0_date">t0_date:</label>
@@ -122,7 +118,7 @@ def root():
     </div>
     </body>
 </html>
-    ''', N=N, I_0=I_0, R_0=R_0, R0=R0, t0_date=t0_date, t_max=t_max, t_min=t_min, D=D, f=f, y_max=y_max, img_name=random.randint(0, 1E9))
+    ''', N=N, I_0=I_0, R_0=R_0, R0=R0, t0_date=t0_date, t_max=t_max, t_min=t_min, D=D, y_max=y_max, img_name=random.randint(0, 1E9))
 
 fig, ax = plt.subplots(1)
 
@@ -130,10 +126,10 @@ fig, ax = plt.subplots(1)
 def plot_png(path):
     plt.cla() # Don't create fig and ax here since plotlib keeps them alive
 
-    N, I_0, R_0, R0, t0_date, t_min, t_max, D, f, y_max = params()
+    N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max = params()
 
     t, S, I, R = run_model(R0, D, N, I_0, R_0, t_min, t_max)
-    plot(ax, t, S, I, R, t0_date, f, y_max)
+    plot(ax, t, S, I, R, t0_date, y_max)
 
     output = io.BytesIO()
     FigureCanvasAgg(fig).print_png(output)

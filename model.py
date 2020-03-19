@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from datetime import date
+from datetime import date, timedelta
 
 """
 S:  Stock of susceptible
@@ -65,22 +66,22 @@ def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
 
 
 def real_data():
+    # https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/
     real_date = date(2020, 3, 1)
-    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18]) - 1
+    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18]) - 1 # March
     Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279])
     return (real_date, t_real, Ic_real)
 
-def plot(ax, t, S, I, R, t0_date, f, y_max):
+def plot(ax, t, S, I, R, t0_date, y_max):
     ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[t[0], t[-1]])
     ax.plot(t, S, 'b--', label='Susceptible')
     ax.plot(t, I, 'r-', linewidth=2.0, label='Infected')
-    ax.plot(t, I * f, 'r-.', label='Detected')
     ax.plot(t, R, 'g--', label='Recovered')
     ax.grid(True)
 
     real_date, t_real, Ic_real = real_data()
     t_real_adjusted = t_real + (real_date - t0_date).days
-    ax.plot(t_real_adjusted, Ic_real, 'k*', label='Confirmed')
+    ax.plot(t_real_adjusted, Ic_real, 'k*', label='Confirmed SE')
     ax.legend(loc=1)
 
 if __name__ == "__main__":
@@ -88,32 +89,25 @@ if __name__ == "__main__":
     # R0 in range 2-2.5 based on analysis in China
     # https://www.who.int/docs/default-source/coronaviruse/who-china-joint-mission-on-covid-19-final-report.pdf
 
-    # According to this study, patients mostly stop spreading virus 8 days after first symptoms.
-    # Assuming 5-14 days of spread before symptoms.
-    # https://www.statnews.com/2020/03/09/people-shed-high-levels-of-coronavirus-study-finds-but-most-are-likely-not-infectious-after-recovery-begins/
-
     # Total population size
     N = 10E6
 
-    # 13th March, Sweden, 775 detected infections
-    # https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/
-    I_0 = 7750
-    R_0 = 0 # Just guessing.
-
     # Number of days to run the simulation
     t_min= -20
-    t_max = 100
+    t_max = 150
 
-    t0_date = date(2020, 3, 15)
-    f = 0.1
+    real_date, t_real, Ic_real = real_data()
+    t0_date = real_date + timedelta(days=int(t_real[-1]))
+    R0 = 2.0
+    D = 7 # 2-14 Incubation + 7 Recovery
 
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
-    t, S, I, R = run_model(5.0, 17.5, N, I_0, R_0, t_min, t_max)
+    t, S, I, R = run_model(R0, D, N, 10*Ic_real[-1], 0, t_min, t_max)
 
-    y_max = 10E6
+    y_max = 2.5E6
 
-    plot(ax, t, S, I, R, t0_date, f, y_max)
+    plot(ax, t, S, I, R, t0_date, y_max)
 
 
 
