@@ -81,7 +81,7 @@ def plot(ax, t, S, I, R, t0_date, y_max):
 
     real_date, t_real, Ic_real = real_data()
     t_real_adjusted = t_real + (real_date - t0_date).days
-    ax.plot(t_real_adjusted, Ic_real, 'k*', label='Confirmed SE')
+    ax.plot(t_real_adjusted, 10*Ic_real, 'k*', label='Confirmed SE x 10')
     ax.legend(loc=1)
 
 if __name__ == "__main__":
