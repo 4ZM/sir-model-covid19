@@ -116,9 +116,10 @@ if __name__ == "__main__":
     # "median incubation period for COVID-19 is just over five days "
     incubation_period = 7
 
-    I_0 = 10*Ic_real[-1]
+    R_0 = 10*16
+    I_0 = 10*Ic_real[-1] - R_0
     E_0 = 2*I_0
-    R_0 = 0
+
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
     t, S, E, I, R = run_model(R0, infectious_period, incubation_period, N, E_0, I_0, R_0, t_min, t_max)
