@@ -33,7 +33,6 @@ def dS(beta, N, S, I):
     return -beta*(I/N)*S
 
 def dE(t, beta, a, N, S, I, E):
-    #print("t: {:.3f}, dE: {:.3f}, I: {:.3f}, E: {:.3f}, IN/S: {:.3f}, a: {:.3f}".format(t, beta*(I/N)*S - a*E, I, E, I/N*S, a))
     return beta*(I/N)*S - a*E
 
 def dI(a, gamma, E, I):
@@ -44,9 +43,9 @@ def dR(gamma, I):
 
 def dSEIR(SEIR, t, params):
     S,E,I,R = SEIR
-    recovery_time, incubation_period, R0, N = params
+    infectious_period, incubation_period, R0, N = params
 
-    gamma = 1./recovery_time
+    gamma = 1./infectious_period
     beta = R0 * gamma
     a = 1./incubation_period
 
@@ -56,19 +55,19 @@ def dSEIR(SEIR, t, params):
             dR(gamma, I),
     ]
 
-def solve(t, recovery_time, incubation_period, R0, N, E_0, I_0, R_0):
-    params = [recovery_time, incubation_period, R0, N]
+def solve(t, infectious_period, incubation_period, R0, N, E_0, I_0, R_0):
+    params = [infectious_period, incubation_period, R0, N]
     S_0 = N - (E_0 + I_0 + R_0)
     SEIR_0 = [S_0, E_0, I_0, R_0]
     SEIR = odeint(dSEIR, SEIR_0, t, args=(params,))
     return SEIR
 
-def run_model(R0, recovery_time, incubation_period, N, E_0, I_0, R_0, t_min, t_max):
+def run_model(R0, infectious_period, incubation_period, N, E_0, I_0, R_0, t_min, t_max):
     t_fwd = np.arange(0., t_max, 1)
-    SEIR_fwd = solve(t_fwd, recovery_time, incubation_period, R0, N, E_0, I_0, R_0)
+    SEIR_fwd = solve(t_fwd, infectious_period, incubation_period, R0, N, E_0, I_0, R_0)
 
     t_rev = np.arange(0., t_min, -1)
-    SEIR_rev = solve(t_rev, recovery_time, incubation_period, R0, N, E_0, I_0, R_0)
+    SEIR_rev = solve(t_rev, infectious_period, incubation_period, R0, N, E_0, I_0, R_0)
 
     t = np.concatenate((t_rev[::-1], t_fwd))
     SEIR = np.concatenate((np.flip(SEIR_rev, axis=0), SEIR_fwd), axis=0)
@@ -105,21 +104,25 @@ if __name__ == "__main__":
 
     # Number of days to run the simulation
     t_min= -20
-    t_max = 30
+    t_max = 10
 
     real_date, t_real, Ic_real = real_data()
     t0_date = real_date + timedelta(days=int(t_real[-1]))
     R0 = 2.0
-    recovery_time = 7 # 2-14 Incubation + 7 Recovery
-    incubation_period = 8
+
+    infectious_period = 5
+
+    # https://www.sciencedaily.com/releases/2020/03/200317175438.htm
+    # "median incubation period for COVID-19 is just over five days "
+    incubation_period = 7
 
     I_0 = 10*Ic_real[-1]
-    E_0 =  2*I_0
+    E_0 = 2*I_0
     R_0 = 0
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
-    t, S, E, I, R = run_model(R0, recovery_time, incubation_period, N, E_0, I_0, R_0, t_min, t_max)
+    t, S, E, I, R = run_model(R0, infectious_period, incubation_period, N, E_0, I_0, R_0, t_min, t_max)
 
-    y_max = 5E4
+    y_max = 1E5
     plot(ax, t, S, E, I, R, t0_date, y_max)
     plt.show()
