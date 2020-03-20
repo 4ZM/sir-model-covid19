@@ -10,10 +10,12 @@ I:  Stock of infected (infectious)
 R:  Stock of recovered
 
 N:  Total population
-a:  Average number of contacts per person times the probability of disease
-    transmission (S->I).
-b:  Rate of rate of recovery or death. b = 1/duration_of_infection
-R0: Basic reproduction number (R0 = a / b).
+a:  Parameter a to the exponential distribution for incubation period.
+    I.e. the average incubation period is 1/a
+beta:  Average number of contacts per person times the probability of disease
+    transmission (S->E).
+gamma:  Rate of rate of recovery or death. b = 1/duration_of_infection
+R0: Basic reproduction number (R0 = beta / gamma).
     Expected number of new infections from a single infection in a population
     where all subjects are susceptible.
 
@@ -21,48 +23,56 @@ Assumptions:
 * Immunity (no R -> I)
 
 Dynamic system
-dS = -aSI/N
-dI = aSI/N - bI
-dR = bI
+dS = -beta*(I/N)*S
+dE = beta*SI/N - aE
+dI = aE - gammaI
+dR = gammaI
 """
 
-def dS(a, N, S, I):
-    return -a*S*I/N
+def dS(beta, N, S, I):
+    return -beta*(I/N)*S
 
-def dI(a, b, N, S, I):
-    return a*S*I/N - b*I
+def dE(t, beta, a, N, S, I, E):
+    #print("t: {:.3f}, dE: {:.3f}, I: {:.3f}, E: {:.3f}, IN/S: {:.3f}, a: {:.3f}".format(t, beta*(I/N)*S - a*E, I, E, I/N*S, a))
+    return beta*(I/N)*S - a*E
 
-def dR(b, I):
-    return b*I
+def dI(a, gamma, E, I):
+    return a*E - gamma*I
 
-def dSIR(SIR, t, params):
-    S,I,R = SIR
-    recovery_time,R0,N = params
-    b = 1./recovery_time
-    a = R0 * b
+def dR(gamma, I):
+    return gamma*I
 
-    return [dS(a, N, S, I),
-            dI(a, b, N, S, I),
-            dR(b, I),
+def dSEIR(SEIR, t, params):
+    S,E,I,R = SEIR
+    recovery_time, incubation_period, R0, N = params
+
+    gamma = 1./recovery_time
+    beta = R0 * gamma
+    a = 1./incubation_period
+
+    return [dS(beta, N, S, I),
+            dE(t, beta, a, N, S, I, E),
+            dI(a, gamma, E, I),
+            dR(gamma, I),
     ]
 
-def solve(t, recovery_time, R0, N, I_0, R_0):
-    params = [recovery_time, R0, N]
-    S_0 = N-I_0-R_0
-    SIR_0 = [S_0, I_0, R_0]
-    SIR = odeint(dSIR, SIR_0, t, args=(params,))
-    return SIR
+def solve(t, recovery_time, incubation_period, R0, N, E_0, I_0, R_0):
+    params = [recovery_time, incubation_period, R0, N]
+    S_0 = N - (E_0 + I_0 + R_0)
+    SEIR_0 = [S_0, E_0, I_0, R_0]
+    SEIR = odeint(dSEIR, SEIR_0, t, args=(params,))
+    return SEIR
 
-def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
+def run_model(R0, recovery_time, incubation_period, N, E_0, I_0, R_0, t_min, t_max):
     t_fwd = np.arange(0., t_max, 1)
-    SIR_fwd = solve(t_fwd, recovery_time, R0, N, I_0, R_0)
+    SEIR_fwd = solve(t_fwd, recovery_time, incubation_period, R0, N, E_0, I_0, R_0)
 
     t_rev = np.arange(0., t_min, -1)
-    SIR_rev = solve(t_rev, recovery_time, R0, N, I_0, R_0)
+    SEIR_rev = solve(t_rev, recovery_time, incubation_period, R0, N, E_0, I_0, R_0)
 
     t = np.concatenate((t_rev[::-1], t_fwd))
-    SIR = np.concatenate((np.flip(SIR_rev, axis=0), SIR_fwd), axis=0)
-    return (t, SIR[:,0], SIR[:,1], SIR[:,2])
+    SEIR = np.concatenate((np.flip(SEIR_rev, axis=0), SEIR_fwd), axis=0)
+    return (t, SEIR[:,0], SEIR[:,1], SEIR[:,2], SEIR[:,3])
 
 
 def real_data():
@@ -72,10 +82,11 @@ def real_data():
     Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279, 1423])
     return (real_date, t_real, Ic_real)
 
-def plot(ax, t, S, I, R, t0_date, y_max):
+def plot(ax, t, S, E, I, R, t0_date, y_max):
     ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[t[0], t[-1]])
     ax.plot(t, S, 'b--', label='Susceptible')
-    ax.plot(t, I, 'r-', linewidth=2.0, label='Infected')
+    ax.plot(t, E, 'r-.', linewidth=2.0, label='Exposed')
+    ax.plot(t, I, 'r-', linewidth=2.0, label='Infectious')
     ax.plot(t, R, 'g--', label='Recovered')
     ax.grid(True)
 
@@ -94,22 +105,21 @@ if __name__ == "__main__":
 
     # Number of days to run the simulation
     t_min= -20
-    t_max = 150
+    t_max = 30
 
     real_date, t_real, Ic_real = real_data()
     t0_date = real_date + timedelta(days=int(t_real[-1]))
     R0 = 2.0
-    D = 7 # 2-14 Incubation + 7 Recovery
+    recovery_time = 7 # 2-14 Incubation + 7 Recovery
+    incubation_period = 8
 
+    I_0 = 10*Ic_real[-1]
+    E_0 =  2*I_0
+    R_0 = 0
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
-    t, S, I, R = run_model(R0, D, N, 10*Ic_real[-1], 0, t_min, t_max)
+    t, S, E, I, R = run_model(R0, recovery_time, incubation_period, N, E_0, I_0, R_0, t_min, t_max)
 
-    y_max = 2.5E6
-
-    plot(ax, t, S, I, R, t0_date, y_max)
-
-
-
-
+    y_max = 5E4
+    plot(ax, t, S, E, I, R, t0_date, y_max)
     plt.show()
