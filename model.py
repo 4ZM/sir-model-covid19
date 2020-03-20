@@ -101,9 +101,11 @@ if __name__ == "__main__":
     R0 = 2.0
     D = 7 # 2-14 Incubation + 7 Recovery
 
+    R_0 = 10*16
+    I_0 = 10*Ic_real[-1] - R_0
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
-    t, S, I, R = run_model(R0, D, N, 10*Ic_real[-1], 0, t_min, t_max)
+    t, S, I, R = run_model(R0, D, N, I_0, R_0, t_min, t_max)
 
     y_max = 2.5E6
 
