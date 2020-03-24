@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-from datetime import date
 from datetime import date, timedelta
+from data import data_sweden
 
 """
 S:  Stock of susceptible
@@ -64,14 +64,6 @@ def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
     SIR = np.concatenate((np.flip(SIR_rev, axis=0), SIR_fwd), axis=0)
     return (t, SIR[:,0], SIR[:,1], SIR[:,2])
 
-
-def real_data():
-    # https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/
-    real_date = date(2020, 3, 1)
-    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]) - 1 # March
-    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279, 1423, 1623, 1746, 1934, 2016, 2272])
-    return (real_date, t_real, Ic_real)
-
 def plot(ax, t, S, I, R, t0_date, y_max):
     ax.set(ylabel='individuals', xlabel='days', ylim=[0, y_max], xlim=[t[0], t[-1]])
     ax.plot(t, S, 'b--', label='Susceptible')
@@ -79,12 +71,12 @@ def plot(ax, t, S, I, R, t0_date, y_max):
     ax.plot(t, R, 'g--', label='Recovered')
     ax.grid(True)
 
-    real_date, t_real, Ic_real = real_data()
+    real_date, t_real, I_real = data_sweden()
     t_real_adjusted = t_real + (real_date - t0_date).days
-    ax.plot(t_real_adjusted, 10*Ic_real, 'k*', label='Confirmed SE x 10')
+    ax.plot(t_real_adjusted, 10*I_real, 'k*', label='Confirmed SE x 10')
     ax.legend(loc=1)
 
-if __name__ == "__main__":
+def initial_values():
     # Model Parameters
     # R0 in range 2-2.5 based on analysis in China
     # https://www.who.int/docs/default-source/coronaviruse/who-china-joint-mission-on-covid-19-final-report.pdf
@@ -96,18 +88,24 @@ if __name__ == "__main__":
     t_min= -20
     t_max = 150
 
-    real_date, t_real, Ic_real = real_data()
-    t0_date = real_date + timedelta(days=int(t_real[-1]))
+    R_0 = 10*16
+    I_0 = 10*I_real[-1] - R_0
     R0 = 2.0
     D = 7 # 2-14 Incubation + 7 Recovery
 
-    R_0 = 10*16
-    I_0 = 10*Ic_real[-1] - R_0
+    y_max = 2.5E6
+
+    return (N, t_min, t_max, R_0, I_0, R0, D, y_max)
+
+if __name__ == "__main__":
+    t0_real, t_real, I_real = data_sweden()
+    t0_date = t0_real + timedelta(days=int(t_real[-1]))
+
+    N, t_min, t_max, R_0, I_0, R0, D, y_max = initial_values()
+
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')
     t, S, I, R = run_model(R0, D, N, I_0, R_0, t_min, t_max)
-
-    y_max = 2.5E6
 
     plot(ax, t, S, I, R, t0_date, y_max)
     plt.show()
