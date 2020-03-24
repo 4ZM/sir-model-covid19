@@ -68,8 +68,8 @@ def run_model(R0, recovery_time, N, I_0, R_0, t_min, t_max):
 def real_data():
     # https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/
     real_date = date(2020, 3, 1)
-    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23]) - 1 # March
-    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279, 1423, 1623, 1746, 1934, 2016])
+    t_real = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]) - 1 # March
+    Ic_real = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279, 1423, 1623, 1746, 1934, 2016, 2272])
     return (real_date, t_real, Ic_real)
 
 def plot(ax, t, S, I, R, t0_date, y_max):
