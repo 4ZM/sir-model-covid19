@@ -85,7 +85,7 @@ def initial_values():
     # https://www.who.int/docs/default-source/coronaviruse/who-china-joint-mission-on-covid-19-final-report.pdf
 
     # Total population size
-    N = 10E6
+    N = 9E6
 
     # Number of days to run the simulation
     t_min= -20
@@ -94,7 +94,7 @@ def initial_values():
     R_0 = 10*16
     I_0 = 10*I_real[-1] - R_0
     R0 = 2.0
-    D = 7 # 2-14 Incubation + 7 Recovery
+    D = 10 # 2-14 Incubation + 7 Recovery
 
     y_max = 2.5E6
 
