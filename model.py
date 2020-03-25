@@ -71,12 +71,15 @@ def plot(ax, t, S, I, R, t0_date, y_max):
     ax.plot(t, R, 'g--', label='Recovered')
     ax.grid(True)
 
-    real_date, t_real, I_real = data_sweden()
-    t_real_adjusted = t_real + (real_date - t0_date).days
+    t0_real, t_real, I_real = data_sweden()
+    t_real_adjusted = t_real + (t0_real - t0_date).days
     ax.plot(t_real_adjusted, 10*I_real, 'k*', label='Confirmed SE x 10')
     ax.legend(loc=1)
 
 def initial_values():
+    t0_real, t_real, I_real = data_sweden()
+    t0_date = t0_real + timedelta(days=int(t_real[-1]))
+
     # Model Parameters
     # R0 in range 2-2.5 based on analysis in China
     # https://www.who.int/docs/default-source/coronaviruse/who-china-joint-mission-on-covid-19-final-report.pdf
@@ -95,13 +98,11 @@ def initial_values():
 
     y_max = 2.5E6
 
-    return (N, t_min, t_max, R_0, I_0, R0, D, y_max)
+    return (N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date)
 
 if __name__ == "__main__":
-    t0_real, t_real, I_real = data_sweden()
-    t0_date = t0_real + timedelta(days=int(t_real[-1]))
 
-    N, t_min, t_max, R_0, I_0, R0, D, y_max = initial_values()
+    N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date  = initial_values()
 
     fig, ax = plt.subplots(1)
     fig.suptitle('SIR model for COVID-19')

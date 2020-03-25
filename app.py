@@ -2,7 +2,8 @@ from flask import Flask, Response, request, render_template_string
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-from model import run_model, plot, real_data
+from model import run_model, plot, initial_values
+from data import data_sweden
 import io
 import random
 from datetime import date, timedelta
@@ -14,24 +15,24 @@ def parse_date(string):
     return parser.parse(string).date()
 
 def params():
-    real_date, t_real, Ic_real = real_data()
+    N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date  = initial_values()
+    t0_real, t_real, _ = data_sweden()
+    t0_date = t0_real + timedelta(days=int(t_real[-1]))
 
-    N = request.args.get('N', default = int(10E6), type = int)
-    I_0 = request.args.get('I_0', default = 10*Ic_real[-1], type = int)
-    R_0 = request.args.get('R_0', default = 0, type = int)
-    R0 = request.args.get('R0', default = 2.0, type = float)
-    t_min = request.args.get('t_min', default = -20, type = int)
-    t_max = request.args.get('t_max', default = 150, type = int)
-    D = request.args.get('D', default = 8, type = float)
-    y_max = request.args.get('y_max', default = int(2E6), type = int)
-    t0_date = request.args.get('t0_date',
-                               default = real_date + timedelta(days=int(t_real[-1])),
-                               type = parse_date)
-    return (N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max)
+    N = request.args.get('N', default = N, type = int)
+    I_0 = request.args.get('I_0', default = I_0, type = int)
+    R_0 = request.args.get('R_0', default = R_0, type = int)
+    R0 = request.args.get('R0', default = R0, type = float)
+    t_min = request.args.get('t_min', default = t_min, type = int)
+    t_max = request.args.get('t_max', default = t_max, type = int)
+    D = request.args.get('D', default = D, type = float)
+    y_max = request.args.get('y_max', default = int(y_max), type = int)
+    t0_date = request.args.get('t0_date', default = t0_date, type = parse_date)
+    return (N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date)
 
 @app.route('/')
 def root():
-    N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max = params()
+    N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date = params()
     return render_template_string('''
 <!doctype html>
 <html lang="en">
@@ -126,7 +127,7 @@ fig, ax = plt.subplots(1)
 def plot_png(path):
     plt.cla() # Don't create fig and ax here since plotlib keeps them alive
 
-    N, I_0, R_0, R0, t0_date, t_min, t_max, D, y_max = params()
+    N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date = params()
 
     t, S, I, R = run_model(R0, D, N, I_0, R_0, t_min, t_max)
     plot(ax, t, S, I, R, t0_date, y_max)
