@@ -19,7 +19,7 @@ def params():
     t0_real, t_real, _ = data_sweden()
     t0_date = t0_real + timedelta(days=int(t_real[-1]))
 
-    N = request.args.get('N', default = N, type = int)
+    N = request.args.get('N', default = int(N), type = int)
     I_0 = request.args.get('I_0', default = I_0, type = int)
     R_0 = request.args.get('R_0', default = R_0, type = int)
     R0 = request.args.get('R0', default = R0, type = float)
