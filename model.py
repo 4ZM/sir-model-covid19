@@ -89,14 +89,14 @@ def initial_values():
 
     # Number of days to run the simulation
     t_min= -20
-    t_max = 150
+    t_max = 120
 
     R_0 = 10*16
     I_0 = 10*I_real[-1] - R_0
     R0 = 2.0
     D = 10 # 2-14 Incubation + 7 Recovery
 
-    y_max = 2.5E6
+    y_max = 1.6E6
 
     return (N, t_min, t_max, R_0, I_0, R0, D, y_max, t0_date)
 
