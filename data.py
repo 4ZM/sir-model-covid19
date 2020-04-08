@@ -7,9 +7,9 @@ def data_sweden():
 
     # days since t0 date
     march = np.asarray([2, 5, 6, 7, 9, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]) - 1
-    april = np.asarray([1, 2, 3, 4, 5]) + march[-1]
+    april = np.asarray([1, 2, 3, 4, 5, 6, 7, 8]) + march[-1]
 
     I_march = np.asarray([15, 52, 101, 140 ,248, 461, 620, 775, 992, 1059, 1167, 1279, 1423, 1623, 1746, 1934, 2016, 2272, 2510, 2806, 3069, 3447, 3700, 4028, 4435])
-    I_april = np.asarray([4947, 5466, 6078, 6443, 6830])
+    I_april = np.asarray([4947, 5466, 6078, 6443, 6830, 7206, 7693, 8419])
 
     return (t0_date, np.concatenate((march, april)), np.concatenate((I_march, I_april)))
